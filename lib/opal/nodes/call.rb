@@ -52,8 +52,8 @@ module Opal
           block = iter
         end
 
-        blktmp  = scope.new_temp if block
-        tmprecv = scope.new_temp if splat || blktmp
+        arglist.insert -1, block if block
+        tmprecv = scope.new_temp if splat
 
         # must do this after assigning temp variables
         has_break = compiler.has_break? { block = expr(block) } if block
@@ -61,10 +61,9 @@ module Opal
         recv_code = recv(recv_sexp)
         call_recv = s(:js_tmp, tmprecv || recv_code)
 
-        if blktmp and !splat
-          arglist.insert 1, call_recv
-        end
-
+        # unless splat
+        #   arglist.insert 1, call_recv
+        # end
         args = expr(arglist)
 
         if tmprecv
@@ -73,15 +72,8 @@ module Opal
           push recv_code, mid
         end
 
-        if blktmp
-          unshift "(#{blktmp} = "
-          push ", #{blktmp}.$$p = ", block, ", #{blktmp})"
-        end
-
         if splat
           push ".apply(", (tmprecv || recv_code), ", ", args, ")"
-        elsif blktmp
-          push ".call(", args, ")"
         else
           push "(", args, ")"
         end
@@ -91,8 +83,6 @@ module Opal
           unshift '(function(){var $brk = Opal.new_brk(); try {'
           line '} catch (err) { if (err === $brk) { return err.$v } else { throw err } }})()'
         end
-
-        scope.queue_temp blktmp if blktmp
       end
 
       def recv_sexp

@@ -70,7 +70,7 @@ module Enumerable
           }
         }
 
-        self.$each.$$p = function(value) {
+        self.$each(Opal.block, function(value) {
           var key = Opal.yield1(block, value);
 
           if (key === nil) {
@@ -87,9 +87,7 @@ module Enumerable
 
             previous = key;
           }
-        }
-
-        self.$each();
+        });
 
         releaseAccumulate();
       }
@@ -102,13 +100,11 @@ module Enumerable
     %x{
       var result = [];
 
-      self.$each.$$p = function() {
+      self.$each(Opal.block, function() {
         var value = Opal.yieldX(block, arguments);
 
         result.push(value);
-      };
-
-      self.$each();
+      });
 
       return result;
     }
@@ -132,15 +128,13 @@ module Enumerable
         block = function() { return true; };
       }
 
-      self.$each.$$p = function() {
+      self.$each(Opal.block, function() {
         var value = Opal.yieldX(block, arguments);
 
         if (#{Opal.truthy?(`value`)}) {
           result++;
         }
-      }
-
-      self.$each();
+      });
 
       return result;
     }
@@ -166,14 +160,12 @@ module Enumerable
       var result,
           all = [], i, length, value;
 
-      self.$each.$$p = function() {
+      self.$each(Opal.block, function() {
         var param = #{Opal.destructure(`arguments`)},
             value = Opal.yield1(block, param);
 
         all.push(param);
-      }
-
-      self.$each();
+      });
 
       if (result !== undefined) {
         return result;
@@ -239,15 +231,13 @@ module Enumerable
       var result  = [],
           current = 0;
 
-      self.$each.$$p = function() {
+      self.$each(Opal.block, function() {
         if (number <= current) {
           result.push(#{Opal.destructure(`arguments`)});
         }
 
         current++;
-      };
-
-      self.$each()
+      });
 
       return result;
     }
@@ -260,7 +250,7 @@ module Enumerable
       var result   = [],
           dropping = true;
 
-      self.$each.$$p = function() {
+      self.$each(Opal.block, function() {
         var param = #{Opal.destructure(`arguments`)};
 
         if (dropping) {
@@ -274,9 +264,7 @@ module Enumerable
         else {
           result.push(param);
         }
-      };
-
-      self.$each();
+      });
 
       return result;
     }
@@ -309,7 +297,7 @@ module Enumerable
     %x{
       var buffer = [], result = nil;
 
-      self.$each.$$p = function() {
+      self.$each(Opal.block, function() {
         var element = #{Opal.destructure(`arguments`)};
         buffer.push(element);
         if (buffer.length > n) {
@@ -318,9 +306,7 @@ module Enumerable
         if (buffer.length == n) {
           Opal.yield1(block, buffer.slice(0, n));
         }
-      }
-
-      self.$each();
+      });
 
       return result;
     }
@@ -332,13 +318,11 @@ module Enumerable
     end
 
     %x{
-      self.$each.$$p = function() {
+      self.$each.apply(self, data.concat([Opal.block, function() {
         var item = #{Opal.destructure(`arguments`)};
 
         Opal.yield1(block, item);
-      }
-
-      self.$each.apply(self, data);
+      }]));
 
       return self;
     }
@@ -357,7 +341,7 @@ module Enumerable
       var result,
           slice = []
 
-      self.$each.$$p = function() {
+      self.$each(Opal.block, function() {
         var param = #{Opal.destructure(`arguments`)};
 
         slice.push(param);
@@ -366,9 +350,7 @@ module Enumerable
           Opal.yield1(block, slice);
           slice = [];
         }
-      };
-
-      self.$each();
+      });
 
       if (result !== undefined) {
         return result;
@@ -390,15 +372,13 @@ module Enumerable
       var result,
           index = 0;
 
-      self.$each.$$p = function() {
+      self.$each.apply(self, args.concat([Opal.block, function() {
         var param = #{Opal.destructure(`arguments`)};
 
         block(param, index);
 
         index++;
-      };
-
-      self.$each.apply(self, args);
+      }]));
 
       if (result !== undefined) {
         return result;
@@ -414,13 +394,11 @@ module Enumerable
     %x{
       var result;
 
-      self.$each.$$p = function() {
+      self.$each(Opal.block, function() {
         var param = #{Opal.destructure(`arguments`)};
 
         block(param, object);
-      };
-
-      self.$each();
+      });
 
       if (result !== undefined) {
         return result;
@@ -434,11 +412,9 @@ module Enumerable
     %x{
       var result = [];
 
-      self.$each.$$p = function() {
+      self.$each.apply(self, args.concat([Opal.block, function() {
         result.push(#{Opal.destructure(`arguments`)});
-      };
-
-      self.$each.apply(self, args);
+      }]));
 
       return result;
     }
@@ -452,16 +428,14 @@ module Enumerable
     %x{
       var result = [];
 
-      self.$each.$$p = function() {
+      self.$each(Opal.block, function() {
         var param = #{Opal.destructure(`arguments`)},
             value = Opal.yield1(block, param);
 
         if (#{Opal.truthy?(`value`)}) {
           result.push(param);
         }
-      };
-
-      self.$each();
+      });
 
       return result;
     }
@@ -533,10 +507,10 @@ module Enumerable
 
   def grep(pattern, &block)
     %x{
-      var result = [];
+      var result = [], wrapper;
 
       if (block !== nil) {
-        self.$each.$$p = function() {
+        wrapper = function() {
           var param = #{Opal.destructure(`arguments`)},
               value = #{pattern === `param`};
 
@@ -548,7 +522,7 @@ module Enumerable
         };
       }
       else {
-        self.$each.$$p = function() {
+        wrapper = function() {
           var param = #{Opal.destructure(`arguments`)},
               value = #{pattern === `param`};
 
@@ -558,7 +532,7 @@ module Enumerable
         };
       }
 
-      self.$each();
+      self.$each(Opal.block, wrapper);
 
       return result;
     }
@@ -572,14 +546,12 @@ module Enumerable
     %x{
       var result;
 
-      self.$each.$$p = function() {
+      self.$each(Opal.block, function() {
         var param = #{Opal.destructure(`arguments`)},
             value = Opal.yield1(block, param);
 
         #{(hash[`value`] ||= []) << `param`};
-      }
-
-      self.$each();
+      });
 
       if (result !== undefined) {
         return result;
@@ -603,10 +575,10 @@ module Enumerable
 
   def inject(object = undefined, sym = undefined, &block)
     %x{
-      var result = object;
+      var result = object, wrapper;
 
       if (block !== nil && sym === undefined) {
-        self.$each.$$p = function() {
+        wrapper = function() {
           var value = #{Opal.destructure(`arguments`)};
 
           if (result === undefined) {
@@ -629,7 +601,7 @@ module Enumerable
           result = undefined;
         }
 
-        self.$each.$$p = function() {
+        wrapper = function() {
           var value = #{Opal.destructure(`arguments`)};
 
           if (result === undefined) {
@@ -641,7 +613,7 @@ module Enumerable
         };
       }
 
-      self.$each();
+      self.$each(Opal.block, wrapper);
 
       return result == undefined ? nil : result;
     }
@@ -664,7 +636,7 @@ module Enumerable
       if (n === undefined || n === nil) {
         var result, value;
 
-        self.$each.$$p = function() {
+        self.$each(Opal.block, function() {
           var item = #{Opal.destructure(`arguments`)};
 
           if (result === undefined) {
@@ -685,9 +657,7 @@ module Enumerable
           if (value > 0) {
             result = item;
           }
-        }
-
-        self.$each();
+        });
 
         if (result === undefined) {
           return nil;
@@ -709,7 +679,7 @@ module Enumerable
       var result,
           by;
 
-      self.$each.$$p = function() {
+      self.$each(Opal.block, function() {
         var param = #{Opal.destructure(`arguments`)},
             value = Opal.yield1(block, param);
 
@@ -723,9 +693,7 @@ module Enumerable
           result = param
           by     = value;
         }
-      };
-
-      self.$each();
+      });
 
       return result === undefined ? nil : result;
     }
@@ -735,10 +703,10 @@ module Enumerable
 
   def min(&block)
     %x{
-      var result;
+      var result, wrapper;
 
       if (block !== nil) {
-        self.$each.$$p = function() {
+        wrapper = function() {
           var param = #{Opal.destructure(`arguments`)};
 
           if (result === undefined) {
@@ -758,7 +726,7 @@ module Enumerable
         };
       }
       else {
-        self.$each.$$p = function() {
+        wrapper = function() {
           var param = #{Opal.destructure(`arguments`)};
 
           if (result === undefined) {
@@ -772,7 +740,7 @@ module Enumerable
         };
       }
 
-      self.$each();
+      self.$each(Opal.block, wrapper);
 
       return result === undefined ? nil : result;
     }
@@ -785,7 +753,7 @@ module Enumerable
       var result,
           by;
 
-      self.$each.$$p = function() {
+      self.$each(Opal.block, function() {
         var param = #{Opal.destructure(`arguments`)},
             value = Opal.yield1(block, param);
 
@@ -799,9 +767,7 @@ module Enumerable
           result = param
           by     = value;
         }
-      };
-
-      self.$each();
+      });
 
       return result === undefined ? nil : result;
     }
@@ -813,7 +779,7 @@ module Enumerable
     %x{
       var min = nil, max = nil, first_time = true;
 
-      self.$each.$$p = function() {
+      self.$each(Opal.block, function() {
         var element = #{Opal.destructure(`arguments`)};
         if (first_time) {
           min = max = element;
@@ -835,9 +801,7 @@ module Enumerable
             max = element;
           }
         }
-      }
-
-      self.$each();
+      });
 
       return [min, max];
     }
@@ -913,7 +877,7 @@ module Enumerable
     %x{
       var truthy = [], falsy = [], result;
 
-      self.$each.$$p = function() {
+      self.$each(Opal.block, function() {
         var param = #{Opal.destructure(`arguments`)},
             value = Opal.yield1(block, param);
 
@@ -923,9 +887,7 @@ module Enumerable
         else {
           falsy.push(param);
         }
-      };
-
-      self.$each();
+      });
 
       return [truthy, falsy];
     }
@@ -939,16 +901,14 @@ module Enumerable
     %x{
       var result = [];
 
-      self.$each.$$p = function() {
+      self.$each(Opal.block, function() {
         var param = #{Opal.destructure(`arguments`)},
             value = Opal.yield1(block, param);
 
         if (#{Opal.falsy?(`value`)}) {
           result.push(param);
         }
-      };
-
-      self.$each();
+      });
 
       return result;
     }
@@ -960,11 +920,9 @@ module Enumerable
     %x{
       var result = [];
 
-      self.$each.$$p = function() {
+      self.$each(Opal.block, function() {
         result.push(arguments);
-      };
-
-      self.$each();
+      });
 
       for (var i = result.length - 1; i >= 0; i--) {
         Opal.yieldX(block, result[i]);
@@ -983,11 +941,11 @@ module Enumerable
 
     Enumerator.new {|e|
       %x{
-        var slice = [];
+        var slice = [], wrapper;
 
         if (block !== nil) {
           if (pattern === undefined) {
-            self.$each.$$p = function() {
+            wrapper = function() {
               var param = #{Opal.destructure(`arguments`)},
                   value = Opal.yield1(block, param);
 
@@ -1000,7 +958,7 @@ module Enumerable
             };
           }
           else {
-            self.$each.$$p = function() {
+            wrapper = function() {
               var param = #{Opal.destructure(`arguments`)},
                   value = block(param, #{pattern.dup});
 
@@ -1014,7 +972,7 @@ module Enumerable
           }
         }
         else {
-          self.$each.$$p = function() {
+          wrapper = function() {
             var param = #{Opal.destructure(`arguments`)},
                 value = #{pattern === `param`};
 
@@ -1027,7 +985,7 @@ module Enumerable
           };
         }
 
-        self.$each();
+        self.$each(Opal.block, wrapper);
 
         if (slice.length > 0) {
           #{e << `slice`};

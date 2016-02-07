@@ -13,7 +13,7 @@ class Proc < `Function`
   def call(*args, &block)
     %x{
       if (block !== nil) {
-        self.$$p = block;
+        args = args.concat([Opal.block, block]);
       }
 
       var result, $brk = self.$$brk;

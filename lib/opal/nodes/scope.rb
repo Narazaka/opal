@@ -11,7 +11,7 @@ module Opal
       attr_accessor :name
 
       # The given block name for a def scope
-      attr_accessor :block_name
+      attr_accessor :block_name, :block_var
 
       attr_reader :scope_name
       attr_reader :locals
@@ -225,7 +225,6 @@ module Opal
           @parent.uses_block!
         else
           @uses_block = true
-          identify!
         end
       end
 

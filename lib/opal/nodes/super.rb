@@ -9,26 +9,28 @@ module Opal
       children :arglist, :iter
 
       def compile_dispatcher
+        iter = nil
         if arglist or iter
           iter = expr(iter_sexp)
         else
           scope.uses_block!
           iter = '$iter'
         end
+
         if scope.def?
           scope.uses_block!
           scope_name = scope.identify!
           class_name = scope.parent.name ? "$#{scope.parent.name}" : 'self.$$class.$$proto'
 
-          if scope.defs
-            push "Opal.find_super_dispatcher(self, '#{scope.mid.to_s}', #{scope_name}, "
+          push "Opal.find_super_dispatcher(self, '#{scope.mid.to_s}', #{scope_name}"
+
+          if iter
+            push ", "
             push iter
-            push ", #{class_name})"
-          else
-            push "Opal.find_super_dispatcher(self, '#{scope.mid.to_s}', #{scope_name}, "
-            push iter
-            push ")"
           end
+          push ", #{class_name}" if scope.defs
+          push ")"
+
         elsif scope.iter?
           chain, cur_defn, mid = scope.get_super_chain
           trys = chain.map { |c| "#{c}.$$def" }.join(' || ')

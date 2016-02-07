@@ -220,6 +220,7 @@ module Opal
       children :value
 
       def compile
+        push 'Opal.block, '
         push expr(s(:call, value, :to_proc, s(:arglist)))
       end
     end

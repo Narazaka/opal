@@ -37,9 +37,7 @@ class Class
   def new(*args, &block)
     %x{
       var obj = #{allocate};
-
-      obj.$initialize.$$p = block;
-      obj.$initialize.apply(obj, args);
+      obj.$initialize.apply(obj, args.concat([Opal.block, block]));
       return obj;
     }
   end

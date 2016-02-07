@@ -960,12 +960,6 @@
   // @return [undefined]
   Opal.stub_for = function(method_name) {
     function method_missing_stub() {
-      // Copy any given block onto the method_missing dispatcher
-      this.$method_missing.$$p = method_missing_stub.$$p;
-
-      // Set block property to null ready for the next call (stop false-positives)
-      method_missing_stub.$$p = null;
-
       // call method missing with correct args (remove '$' prefix on method name)
       return this.$method_missing.apply(this, [method_name.slice(1)].concat($slice.call(arguments)));
     }
@@ -1015,7 +1009,6 @@
     }
 
     dispatcher = dispatcher['$' + jsid];
-    dispatcher.$$p = iter;
 
     return dispatcher;
   };
@@ -1273,11 +1266,10 @@
   };
 
   Opal.block_send = function(recv, mid, block) {
-    var args = $slice.call(arguments, 3),
+    var args = $slice.call(arguments, 3).concat([Opal.block, block]),
         func = recv['$' + mid];
 
     if (func) {
-      func.$$p = block;
       return func.apply(recv, args);
     }
 
@@ -1437,6 +1429,9 @@
 
     return obj;
   };
+
+  // A unique object acting as the block flag
+  Opal.block = new Object;
 
   Opal.alias_native = function(obj, name, native_name) {
     var id   = '$' + name,

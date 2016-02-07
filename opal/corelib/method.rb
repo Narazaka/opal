@@ -14,7 +14,7 @@ class Method
 
   def call(*args, &block)
     %x{
-      #@method.$$p = block;
+      args = args.concat([Opal.block, block]);
 
       return #@method.apply(#@receiver, args);
     }

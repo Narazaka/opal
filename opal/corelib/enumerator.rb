@@ -63,16 +63,14 @@ class Enumerator
     %x{
       var result, index = offset;
 
-      self.$each.$$p = function() {
+      self.$each(Opal.block, function() {
         var param = #{Opal.destructure(`arguments`)},
             value = block(param, index);
 
         index++;
 
         return value;
-      }
-
-      self.$each();
+      });
 
       if (result !== undefined) {
         return result;

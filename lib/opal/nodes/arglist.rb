@@ -10,6 +10,7 @@ module Opal
         code, work = [], []
 
         children.each do |current|
+          next unless current
           splat = current.first == :splat
           arg = expr(current)
 

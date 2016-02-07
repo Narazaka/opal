@@ -228,16 +228,25 @@ module Opal
       self.helpers << name
     end
 
+    def indent!
+      previous = @indent
+      @indent += INDENT
+      @space = "\n#@indent"
+      previous
+    end
+
+    def outdent!(previous)
+      @indent = previous
+      @space = "\n#@indent"
+    end
+
     # To keep code blocks nicely indented, this will yield a block after
     # adding an extra layer of indent, and then returning the resulting
     # code after reverting the indent.
     def indent(&block)
-      indent = @indent
-      @indent += INDENT
-      @space = "\n#@indent"
+      previous = indent!
       res = yield
-      @indent = indent
-      @space = "\n#@indent"
+      outdent! previous
       res
     end
 
@@ -349,7 +358,7 @@ module Opal
       when :undef
         last = sexp.pop
         sexp << returns(last)
-      when :break, :next, :redo
+      when :break, :next, :redo, :returnable_yield
         sexp
       when :yield
         sexp[0] = :returnable_yield

@@ -37,21 +37,23 @@ module Opal
           if block_arg
             scope.block_name = block_arg
             scope.add_temp block_arg
-            scope_name = scope.identify!
-
-            line "#{block_arg} = #{scope_name}.$$p || nil, #{scope_name}.$$p = null;"
+            # TODO: backport form def.rb
+            # scope_name = scope.identify!
+            #
+            # line "#{block_arg} = #{scope_name}.$$p || nil, #{scope_name}.$$p = null;"
           end
 
           body_code = stmt(body)
           to_vars = scope.to_vars
         end
 
-        line body_code
+        indent do
+          line body_code
+          unshift_line to_vars
 
-        unshift to_vars
-
-        unshift "(#{identity} = function(#{params.join ', '}){"
-        push "}, #{identity}.$$s = self,"
+          unshift "Opal.block, (#{identity} = function(#{params.join ', '}){"
+        end
+        line "}, #{identity}.$$s = self,"
         push " #{identity}.$$brk = $brk," if compiler.has_break?
         push " #{identity})"
       end
@@ -62,9 +64,9 @@ module Opal
             arg = variable(arg[1])
 
             if opt_args and current_opt = opt_args.find { |s| s[1] == arg.to_sym }
-              push "if (#{arg} == null) #{arg} = ", expr(current_opt[2]), ";"
+              line "if (#{arg} == null) #{arg} = ", expr(current_opt[2]), ";"
             else
-              push "if (#{arg} == null) #{arg} = nil;"
+              line "if (#{arg} == null) #{arg} = nil;"
             end
           elsif arg.type == :array
             vars = {}

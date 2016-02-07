@@ -39,7 +39,7 @@ module Opal
 
       def compile
         params = nil
-        scope_name = nil
+        # scope_name = nil
 
         # block name (&block)
         if block_arg
@@ -59,6 +59,7 @@ module Opal
             scope.add_arg block_name
           end
 
+          scope.block_var = block_name
           scope.block_name = block_name || '$yield'
 
           params = process(args)
@@ -70,8 +71,8 @@ module Opal
           compile_opt_args
           compile_keyword_args
 
-          # must do this after opt args incase opt arg uses yield
-          scope_name = scope.identity
+          # # must do this after opt args incase opt arg uses yield
+          # scope_name = scope.identity
 
           compile_block_arg
 
@@ -105,7 +106,7 @@ module Opal
         unshift ") {"
         unshift(params)
         unshift "function #{function_name(mid)}("
-        unshift "#{scope_name} = " if scope_name
+        # unshift "#{scope_name} = " if scope_name
         line "}"
 
         if recvr
@@ -129,18 +130,22 @@ module Opal
           raise "Unsupported use of `def`; please file a bug at https://github.com/opal/opal reporting this message."
         end
 
-        wrap '(', ", nil) && '#{mid}'" if expr?
+        wrap '(', ", '#{mid}')" if expr?
       end
 
       def compile_block_arg
         if scope.uses_block?
-          scope_name  = scope.identity
-          yielder     = scope.block_name
+          yielder = scope.block_name
 
-          add_temp "$iter = #{scope_name}.$$p"
-          add_temp "#{yielder} = $iter || nil"
-
-          line "#{scope_name}.$$p = null;"
+          if scope.block_var && !rest_arg?
+            add_temp "$iter = ($blk === Opal.block ? #{yielder} : nil)"
+            add_temp "#{yielder} = $iter"
+          else
+            # if the last arg is the block mark then the before-last arg is a block
+            add_temp "$blk = arguments[arguments.length-2]"
+            add_temp "$iter = $blk === Opal.block ? arguments[arguments.length-1] : nil"
+            add_temp "#{yielder} = $iter"
+          end
         end
       end
 
@@ -294,7 +299,16 @@ module Opal
             end
 
           when :blockarg
-            # we ignore it because we don't need it
+            unless have_rest
+              child = child[1].to_sym
+              push ', ' unless first_arg
+              child = variable(child)
+              scope.add_arg child.to_sym
+              push '$blk'
+              push ', '
+              push child.to_s
+              first = false
+            end
 
           when :restarg
             have_rest = true
