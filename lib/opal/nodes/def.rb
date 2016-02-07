@@ -173,8 +173,9 @@ module Opal
       def compile_opt_args
         opt_args.each do |arg|
           next if arg[2][2] == :undefined
-          line "if (#{variable(arg[1])} == null) {"
-          line "  #{variable(arg[1])} = ", expr(arg[2])
+          var_name = variable(arg[1])
+          line "if (#{var_name} == null || #{var_name} === Opal.block) {"
+          line "  #{var_name} = ", expr(arg[2])
           line "}"
         end
       end
