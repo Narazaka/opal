@@ -86,7 +86,7 @@ task :onedist do
     puts  ")."
 
     _src
-  end.join("\n")
+  end.join("\n") + "\nif (typeof(module) !== 'undefined') { module.exports = {Opal: Opal}; Opal.global = this; }\n"
 
   File.open("#{build_dir}/#{onelib}.js", 'w+')        { |f| f << src }
   puts "development: #{('%.2f' % (src.size/1000.0)).rjust(6)}KB"
